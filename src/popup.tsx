@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
+import "./popup.css";
 
 interface Item {
   text: string;
@@ -25,7 +26,7 @@ export class App extends React.Component<{}, State> {
   render() {
     return (
       <div>
-        <h1>Hello World!</h1>
+        <h1 className="text-2xl">Element-Translator</h1>
         {this.state.history.map((item) => (
           <div key={item.at}>
             <div>{item.text}</div>
