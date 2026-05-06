@@ -23,10 +23,16 @@ export class App extends React.Component<{}, State> {
     });
   }
 
+  handleStartCapture = () => {
+    browser.runtime.sendMessage({ type: "START_CAPTURE" });
+  };
+
   render() {
     return (
       <div>
         <h1 className="text-2xl">Element-Translator</h1>
+        <button onClick={this.handleStartCapture}>選択</button>
+
         {this.state.history.map((item) => (
           <div key={item.at}>
             <div>{item.text}</div>
