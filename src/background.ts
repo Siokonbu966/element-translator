@@ -1,19 +1,21 @@
 import browser from "webextension-polyfill";
 
-browser.runtime.onMessage.addListener(async (msg: any, sender:any) => {
+browser.runtime.onMessage.addListener(async (msg: any, sender: any) => {
   if (msg?.type === "START_CAPTURE") {
     const tabId = sender.tab?.id;
+    const tabUrl = sender.tab?.url;
 
-    if (!tabId) return;
+    const targetTabId = tabId ?? (await getActiveTabId());
+    const targetUrl = tabUrl ?? (await getActiveTabUrl());
 
-    const url = sender.tab?.url ?? "";
+    if (!targetTabId || !targetUrl) return;
 
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
       return;
     }
 
     try {
-      await browser.tabs.sendMessage(tabId, {
+      await browser.tabs.sendMessage(targetTabId, {
         type: "START_CAPTURE",
       });
     } catch (error) {
@@ -32,3 +34,13 @@ browser.runtime.onMessage.addListener(async (msg: any, sender:any) => {
     await browser.storage.local.set({ history: history.slice(0, 20) });
   }
 });
+
+async function getActiveTabId(): Promise<number | undefined> {
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+  return tabs[0]?.id;
+}
+
+async function getActiveTabUrl(): Promise<string | undefined> {
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+  return tabs[0]?.url;
+}
