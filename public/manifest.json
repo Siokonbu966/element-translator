@@ -10,13 +10,18 @@
   "permissions": ["activeTab", "storage", "scripting", "tabs"],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "background.js"
+    ],
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": [
+        "browser-polyfill.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]
