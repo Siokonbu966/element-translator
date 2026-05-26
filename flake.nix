@@ -22,6 +22,12 @@
             nodejs_24
             pnpm
           ];
+          
+          shellHook = ''
+            echo "completed!"
+            echo "Node.js version: $(node -v)"
+            echo "pnpm version: $(pnpm -v)"
+          '';
         };
       };
     };
