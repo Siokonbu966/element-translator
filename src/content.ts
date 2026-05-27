@@ -1,5 +1,4 @@
 console.log("hello extension!");
-alert("exec extension");
 
 document.addEventListener("click", (event: any) => {
   const target = event.target as HTMLElement | null;
