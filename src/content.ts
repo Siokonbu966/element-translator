@@ -1,10 +1,16 @@
 console.log("hello extension!");
 
-document.addEventListener("click", (event: any) => {
+document.addEventListener("click", (event: MouseEvent) => {
   const target = event.target as HTMLElement | null;
-  const p = target?.closest("p");
-  if (!p) return;
+  const el = target?.closest("p, li");
+  if (!el) return;
 
-  const text = p.textContent?.trim() ?? "";
-  browser.runtime.sendMessage({ type: "PARAGRAPH_CLICKED", text });
+  const text = el.textContent?.trim() ?? "";
+  if (!text) return;
+
+  browser.runtime.sendMessage({
+    type: "PARAGRAPH_CLICKED",
+    text,
+    url: location.href,
+  });
 });
