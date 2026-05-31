@@ -23,6 +23,7 @@ const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 interface State {
   history: HistoryItem[];
   settings: Settings;
+  endpointError: boolean;
   models: string[];
   modelsError: string | null;
   loadingModels: boolean;
@@ -32,6 +33,7 @@ export class App extends React.Component<object, State> {
   state: State = {
     history: [],
     settings: { endpoint: DEFAULT_ENDPOINT, model: "" },
+    endpointError: false,
     models: [],
     modelsError: null,
     loadingModels: false,
@@ -82,9 +84,26 @@ export class App extends React.Component<object, State> {
     browser.storage.onChanged.removeListener(this.onStorageChanged);
   }
 
+  private isValidHttpUrl(endpoint: string): boolean {
+    if (!URL.canParse(endpoint)) {
+      return false;
+    }
+
+    const url = new URL(endpoint);
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+
   private async loadModels() {
     const endpoint = this.state.settings.endpoint.trim() || DEFAULT_ENDPOINT;
-    this.setState({ loadingModels: true, modelsError: null });
+    if (!this.isValidHttpUrl(endpoint)) {
+      this.setState({ endpointError: true });
+      return;
+    }
+    this.setState({
+      loadingModels: true,
+      modelsError: null,
+      endpointError: false,
+    });
     try {
       const res = await fetch(`${endpoint.replace(/\/+$/, "")}/v1/models`);
       if (!res.ok) throw new Error(`GET /v1/models failed: ${res.status}`);
@@ -126,8 +145,14 @@ export class App extends React.Component<object, State> {
   };
 
   render() {
-    const { history, settings, models, loadingModels, modelsError } =
-      this.state;
+    const {
+      history,
+      settings,
+      endpointError,
+      models,
+      loadingModels,
+      modelsError,
+    } = this.state;
     return (
       <div className="p-3 w-[360px]">
         <h1 className="text-lg font-semibold">Element Translator</h1>
@@ -141,6 +166,11 @@ export class App extends React.Component<object, State> {
             onChange={(e) => void this.setEndpoint(e.target.value)}
             placeholder={DEFAULT_ENDPOINT}
           />
+          {endpointError ? (
+            <div className="mt-1 text-xs text-red-600">
+              Not valiable endpoint
+            </div>
+          ) : null}
         </div>
         <div className="mt-3">
           <label className="block text-sm font-medium">Model</label>
