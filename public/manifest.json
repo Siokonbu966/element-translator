@@ -8,7 +8,11 @@
     "default_popup": "popup.html"
   },
   "permissions": ["activeTab", "storage", "scripting", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>",
+    "http://127.0.0.1:1234/*",
+    "http://localhost:1234/*"
+  ],
   "background": {
     "scripts": ["background.js"],
     "type": "module"
@@ -16,7 +20,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["browser-polyfill.js", "content.js"],
       "run_at": "document_idle"
     }
   ]
