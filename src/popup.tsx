@@ -168,7 +168,7 @@ export class App extends React.Component<object, State> {
           />
           {endpointError ? (
             <div className="mt-1 text-xs text-red-600">
-              Not valid endpoint
+              Invalid endpoint URL (must start with http:// or https://)
             </div>
           ) : null}
         </div>
