@@ -7,9 +7,8 @@
     "default_title": "Translate Element",
     "default_popup": "popup.html"
   },
-  "permissions": ["activeTab", "storage", "scripting", "tabs"],
+  "permissions": ["storage"],
   "host_permissions": [
-    "<all_urls>",
     "http://127.0.0.1:1234/*",
     "http://localhost:1234/*"
   ],
