@@ -24,3 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 opencode.json
+web-ext-artifacts/
