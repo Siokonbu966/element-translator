@@ -1,11 +1,11 @@
 import browser from "webextension-polyfill";
 
-type Settings = {
+interface Settings {
   endpoint: string;
   model: string;
 };
 
-type HistoryItem = {
+interface HistoryItem {
   at: number;
   url: string;
   sourceText: string;
@@ -133,7 +133,7 @@ async function appendHistory(item: HistoryItem) {
   await browser.storage.local.set({ history: next });
 }
 
-type ParagraphClickedMessage = {
+interface ParagraphClickedMessage {
   type: "PARAGRAPH_CLICKED";
   text: string;
   url?: string;
