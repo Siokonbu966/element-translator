@@ -1,20 +1,18 @@
 console.log("hello extension!");
 console.log("load content.js");
 
-document.addEventListener("click", (event: MouseEvent) => {
-  const target = event.target as HTMLElement | null;
-  const el = target?.closest("p, li");
-  if (!el) return;
+function selectText() {
+  return new Promise(() => {
+    document.addEventListener("click", (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const el = target?.closest("p, li");
+      if (!el) return;
 
-  const text = el.textContent?.trim() ?? "";
-  if (!text) return;
-
-  browser.runtime.sendMessage({
-    type: "PARAGRAPH_CLICKED",
-    text,
-    url: location.href,
-  });
-});
+      const text = el.textContent?.trim() ?? "";
+      if (!text) return;
+    });
+  })
+}
 
 function getMainContainer(): Element{
   return (
@@ -37,10 +35,22 @@ function collectMainContentTexts(): string[] {
   return texts;
 }
 
-browser.runtime.onMessage.addListener((msg: unknown) => {
+/**
+ * @param type - browser runtime listener messages.
+ */
+interface translateAllPage {
+  type: string;
+}
+
+browser.runtime.onMessage.addListener(async(message: unknown) => {
+  const msg = message as Partial<translateAllPage>;
   if (msg.type == "GET_ALL_TEXT") {
     const texts = collectMainContentTexts();
     browser.runtime.sendMessage({ texts });
+    return true;
+  } else if (msg.type == "SELECT_TRANSLATE") {
+    const element = await selectText();
+    console.log(element);
     return true;
   }
 });
