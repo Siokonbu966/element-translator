@@ -142,7 +142,10 @@ interface ParagraphClickedMessage {
 browser.runtime.onMessage.addListener(
   (message: unknown, sender: browser.Runtime.MessageSender) => {
     const msg = message as Partial<ParagraphClickedMessage>;
-    if (!msg || msg.type !== "PARAGRAPH_CLICKED") return;
+    if (!msg || msg.type !== "PARAGRAPH_CLICKED") {
+      console.log("Difarrence message" + msg);
+      return
+    };
 
     const sourceText = typeof msg.text === "string" ? msg.text.trim() : "";
     if (!sourceText) return;
