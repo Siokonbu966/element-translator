@@ -143,12 +143,22 @@ browser.runtime.onMessage.addListener(
   (message: unknown, sender: browser.Runtime.MessageSender) => {
     const msg = message as Partial<ParagraphClickedMessage>;
     if (!msg || msg.type !== "PARAGRAPH_CLICKED") {
-      console.log("Difarrence message" + msg);
-      return
+      console.log("[element-translator] Ignoring", JSON.stringify(message)?.substring(0, 100));
+      return;
     };
 
     const sourceText = typeof msg.text === "string" ? msg.text.trim() : "";
-    if (!sourceText) return;
+    console.log("[element-translator] Received PARAGRAPH_CLICKED:", {
+      textType: typeof msg.text,
+      textValue: sourceText.substring(0, 100),
+      length: sourceText.length,
+      senderUrl: sender?.tab?.url,
+    });
+
+    if (!sourceText) {
+      console.log("[element-translator] Empty text received, skipping");
+      return;
+    }
     const url =
       (typeof msg.url === "string" && msg.url) || sender?.tab?.url || "";
 
