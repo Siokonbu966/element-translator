@@ -137,7 +137,7 @@ export class App extends React.Component<object, State> {
   private async allTextTranslate() {
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
     if (tab?.id) {
-      browser.tabs.sendMessage(tab.id, { type: "GET_ALL_TEXT" })
+      browser.tabs.sendMessage(tab.id, { type: "CLICKED_ALL_TEXT" })
     }
   }
   

@@ -15,6 +15,17 @@ interface HistoryItem {
   error?: string;
 };
 
+interface ResponseItem {
+  text: string;
+  id: number;
+}
+
+interface ParagraphClickedMessage {
+  type: "PARAGRAPH_CLICKED";
+  text: string;
+  url?: string;
+};
+
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 const HISTORY_LIMIT = 50;
 const MODELS_TIMEOUT_MS = 10_000;
@@ -133,14 +144,12 @@ async function appendHistory(item: HistoryItem) {
   await browser.storage.local.set({ history: next });
 }
 
-interface ParagraphClickedMessage {
-  type: "PARAGRAPH_CLICKED";
-  text: string;
-  url?: string;
-};
+async function setResponseText(item: ResponseItem) {
+
+}
 
 browser.runtime.onMessage.addListener(
-  (message: unknown, sender: browser.Runtime.MessageSender) => {
+  (message: unknown, sender: browser.Runtime.MessageSender, id?: number) => {
     const msg = message as Partial<ParagraphClickedMessage>;
     if (!msg || msg.type !== "PARAGRAPH_CLICKED") {
       console.log("[element-translator] Ignoring", JSON.stringify(message)?.substring(0, 100));
@@ -176,15 +185,20 @@ browser.runtime.onMessage.addListener(
       } catch (e: unknown) {
         error = e instanceof Error ? e.message : String(e);
       }
-      await appendHistory({
-        at: Date.now(),
-        url,
-        sourceText,
-        translatedText,
-        endpoint: settings.endpoint,
-        model: settings.model,
-        ...(error ? { error } : {}),
-      });
+
+      if (msg == "PARAGRAPH_CLICKED") {
+        await appendHistory({
+          at: Date.now(),
+          url,
+          sourceText,
+          translatedText,
+          endpoint: settings.endpoint,
+          model: settings.model,
+          ...(error ? { error } : {}),
+        });
+      } else if (msg == "GET_ALL_TEXT") {
+        await
+      }
     })();
   },
 );
