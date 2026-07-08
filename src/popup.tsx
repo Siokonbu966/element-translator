@@ -127,7 +127,17 @@ export class App extends React.Component<object, State> {
       this.setState({ loadingModels: false });
     }
   }
+  private async startSelectText() {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    if (tab?.id) {
+      browser.tabs.sendMessage(tab.id, { type: "SELECT_TRANSLATE" })
+    }
+  }
 
+  //private async allTextTranslate() {
+  //  browser.runtime.sendMessage({ type: "GET_ALL_TEXT"})
+  //}
+  
   private setEndpoint = async (endpoint: string) => {
     await browser.storage.local.set({
       settings: { ...this.state.settings, endpoint },
@@ -209,6 +219,12 @@ export class App extends React.Component<object, State> {
             onClick={() => void this.clearHistory()}
           >
             Clear history
+          </button>
+          <button
+            className="rounded border px-2 py-1 text-sm"
+            onClick={() => void this.startSelectText()}
+          >
+          Select text
           </button>
         </div>
         <div className="mt-4">

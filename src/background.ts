@@ -1,11 +1,11 @@
 import browser from "webextension-polyfill";
 
-type Settings = {
+interface Settings {
   endpoint: string;
   model: string;
 };
 
-type HistoryItem = {
+interface HistoryItem {
   at: number;
   url: string;
   sourceText: string;
@@ -133,7 +133,7 @@ async function appendHistory(item: HistoryItem) {
   await browser.storage.local.set({ history: next });
 }
 
-type ParagraphClickedMessage = {
+interface ParagraphClickedMessage {
   type: "PARAGRAPH_CLICKED";
   text: string;
   url?: string;
@@ -142,7 +142,10 @@ type ParagraphClickedMessage = {
 browser.runtime.onMessage.addListener(
   (message: unknown, sender: browser.Runtime.MessageSender) => {
     const msg = message as Partial<ParagraphClickedMessage>;
-    if (!msg || msg.type !== "PARAGRAPH_CLICKED") return;
+    if (!msg || msg.type !== "PARAGRAPH_CLICKED") {
+      console.log("Difarrence message" + msg);
+      return
+    };
 
     const sourceText = typeof msg.text === "string" ? msg.text.trim() : "";
     if (!sourceText) return;
