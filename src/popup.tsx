@@ -127,9 +127,11 @@ export class App extends React.Component<object, State> {
       this.setState({ loadingModels: false });
     }
   }
-
-  private startSelectText() {
-    browser.runtime.sendMessage({ type: "SELECT_TRANSLATE" })
+  private async startSelectText() {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    if (tab?.id) {
+      browser.tabs.sendMessage(tab.id, { type: "SELECT_TRANSLATE" })
+    }
   }
 
   //private async allTextTranslate() {
@@ -220,7 +222,7 @@ export class App extends React.Component<object, State> {
           </button>
           <button
             className="rounded border px-2 py-1 text-sm"
-            onClick={() => void this.startSelectText}
+            onClick={() => void this.startSelectText()}
           >
           Select text
           </button>

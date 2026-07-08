@@ -1,17 +1,16 @@
-console.log("hello extension!");
 console.log("load content.js");
 
-function selectText() {
-  return new Promise(() => {
-    document.addEventListener("click", (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      const el = target?.closest("p, li");
-      if (!el) return;
-
-      const text = el.textContent?.trim() ?? "";
-      if (!text) return;
-    });
-  })
+function setupSelectTextListener() {
+  function handler(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    const el = target?.closest("p, li");
+    if (!el) return;
+    const text = el.textContent?.trim() ?? "";
+    if (!text) return;
+    document.removeEventListener("click", handler, true);
+    browser.runtime.sendMessage({ type: "PARAGRAPH_CLICKED", text });
+  }
+  document.addEventListener("click", handler, true);
 }
 
 function getMainContainer(): Element{
@@ -49,8 +48,7 @@ browser.runtime.onMessage.addListener(async(message: unknown) => {
     browser.runtime.sendMessage({ texts });
     return true;
   } else if (msg.type == "SELECT_TRANSLATE") {
-    const element = await selectText();
-    console.log(element);
+    setupSelectTextListener();
     return true;
   }
 });
