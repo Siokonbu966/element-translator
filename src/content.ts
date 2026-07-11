@@ -21,9 +21,30 @@ function getMainContainer(): Element{
 
 const EXCLUDE_SELECTOR = "nav, footer, aside, header, [role='navigation'], [role='banner'], [role='contentinfo']";
 
+/**
+ * request for sending transtlate API
+ * 
+ * @remarks
+ * translated is optional
+ *
+ * @example
+ * ```ts
+ * const message: translationUnit = {
+ *  id: somthing_number;
+ *  element: DOMElement;
+ *  type: "GET_ALL_TEXT";
+ *  original: input domtext;
+ *  translated?: return api text;
+ * }
+ * ```
+ */
 interface translationUnit {
+  /** Element id */
   id: number;
+
+  /** Input element */
   element: Element;
+
   type: "GET_ALL_TEXT";
   original: string;
   translated?: string;
@@ -51,7 +72,9 @@ function collectMainContentTexts() {
         `[element-translator] Sending <${el.tagName}> (${text.length} chars):`,
         text.substring(0, 80)
       );
-      browser.runtime.sendMessage(message).catch((err) => {
+      browser.runtime.sendMessage(message)
+        .then()
+        .catch((err) => {
         console.error(`[element-translator] sendMessage failed for <${el.tagName}>:`, err);
       });
       sentCount++;
