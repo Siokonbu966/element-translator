@@ -15,13 +15,9 @@ interface HistoryItem {
   error?: string;
 };
 
-interface ResponseItem {
-  text: string;
-  id: number;
-}
 
-interface ParagraphClickedMessage {
-  type: "PARAGRAPH_CLICKED";
+type ParagraphClickedMessage = {
+  type: "PARAGRAPH_CLICKED" | "GET_ALL_TEXT";
   text: string;
   url?: string;
 };
@@ -144,10 +140,6 @@ async function appendHistory(item: HistoryItem) {
   await browser.storage.local.set({ history: next });
 }
 
-async function setResponseText(item: ResponseItem) {
-
-}
-
 browser.runtime.onMessage.addListener(
   (message: unknown, sender: browser.Runtime.MessageSender, id?: number) => {
     const msg = message as Partial<ParagraphClickedMessage>;
@@ -186,7 +178,7 @@ browser.runtime.onMessage.addListener(
         error = e instanceof Error ? e.message : String(e);
       }
 
-      if (msg == "PARAGRAPH_CLICKED") {
+      if (msg.type == "PARAGRAPH_CLICKED") {
         await appendHistory({
           at: Date.now(),
           url,
@@ -196,8 +188,11 @@ browser.runtime.onMessage.addListener(
           model: settings.model,
           ...(error ? { error } : {}),
         });
-      } else if (msg == "GET_ALL_TEXT") {
-        await
+      } else if (msg.type == "GET_ALL_TEXT") {
+        return {
+          translatedText,
+          id,
+        };
       }
     })();
   },

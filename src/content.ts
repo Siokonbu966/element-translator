@@ -19,32 +19,13 @@ function getMainContainer(): Element{
   );
 }
 
-const EXCLUDE_SELECTOR = "nav, footer, aside, header, [role='navigation'], [role='banner'], [role='contentinfo']";
+const EXCLUDE_SELECTOR = "a, nav, footer, aside, header, [role='navigation'], [role='banner'], [role='contentinfo']";
 
 /**
- * request for sending transtlate API
- * 
- * @remarks
- * translated is optional
- *
- * @example
- * ```ts
- * const message: translationUnit = {
- *  id: somthing_number;
- *  element: DOMElement;
- *  type: "GET_ALL_TEXT";
- *  original: input domtext;
- *  translated?: return api text;
- * }
- * ```
+ * Message sent to background script for translation.
  */
 interface translationUnit {
-  /** Element id */
   id: number;
-
-  /** Input element */
-  element: Element;
-
   type: "GET_ALL_TEXT";
   original: string;
   translated?: string;
@@ -67,16 +48,18 @@ function collectMainContentTexts() {
     };
     
     try {
-      const message: translationUnit = { type: "GET_ALL_TEXT" as const, id: idCount, nodes: original: text };
+      const message: translationUnit = { type: "GET_ALL_TEXT" as const, id: idCount, original: text };
       console.log(
         `[element-translator] Sending <${el.tagName}> (${text.length} chars):`,
         text.substring(0, 80)
       );
       browser.runtime.sendMessage(message)
-        .then()
+        .then((response) => {
+          console.log(`[element-translator] return ${response}`)
+        })
         .catch((err) => {
-        console.error(`[element-translator] sendMessage failed for <${el.tagName}>:`, err);
-      });
+          console.error(`[element-translator] sendMessage failed for <${el.tagName}>:`, err);
+        });
       sentCount++;
     } catch (err) {
       console.error(`[element-translator] Error on <${el.tagName}>:`, err);

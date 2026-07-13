@@ -25,3 +25,4 @@ dist-ssr
 *.sw?
 opencode.json
 web-ext-artifacts/
+AGENTS.md
