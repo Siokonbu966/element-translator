@@ -20,6 +20,8 @@ type ParagraphClickedMessage = {
   type: "PARAGRAPH_CLICKED" | "GET_ALL_TEXT";
   text: string;
   url?: string;
+  id?: number;
+  el?: Element;
 };
 
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
@@ -141,19 +143,20 @@ async function appendHistory(item: HistoryItem) {
 }
 
 browser.runtime.onMessage.addListener(
-  (message: unknown, sender: browser.Runtime.MessageSender, id?: number) => {
+  (message: unknown, sender: browser.Runtime.MessageSender) => {
     const msg = message as Partial<ParagraphClickedMessage>;
-    if (!msg || msg.type !== "PARAGRAPH_CLICKED") {
+    if (!msg) {
       console.log("[element-translator] Ignoring", JSON.stringify(message)?.substring(0, 100));
       return;
     };
 
     const sourceText = typeof msg.text === "string" ? msg.text.trim() : "";
-    console.log("[element-translator] Received PARAGRAPH_CLICKED:", {
+    console.log(`[element-translator] Received ${msg.type}`, {
       textType: typeof msg.text,
       textValue: sourceText.substring(0, 100),
       length: sourceText.length,
       senderUrl: sender?.tab?.url,
+      id: msg.id,
     });
 
     if (!sourceText) {
@@ -191,7 +194,8 @@ browser.runtime.onMessage.addListener(
       } else if (msg.type == "GET_ALL_TEXT") {
         return {
           translatedText,
-          id,
+          sourceText,
+          id: msg.id,
         };
       }
     })();
