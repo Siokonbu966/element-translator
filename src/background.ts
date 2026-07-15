@@ -15,6 +15,15 @@ interface HistoryItem {
   error?: string;
 };
 
+
+type ParagraphClickedMessage = {
+  type: "PARAGRAPH_CLICKED" | "GET_ALL_TEXT";
+  text: string;
+  url?: string;
+  id?: number;
+  el?: Element;
+};
+
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 const HISTORY_LIMIT = 50;
 const MODELS_TIMEOUT_MS = 10_000;
@@ -133,22 +142,27 @@ async function appendHistory(item: HistoryItem) {
   await browser.storage.local.set({ history: next });
 }
 
-interface ParagraphClickedMessage {
-  type: "PARAGRAPH_CLICKED";
-  text: string;
-  url?: string;
-};
-
 browser.runtime.onMessage.addListener(
   (message: unknown, sender: browser.Runtime.MessageSender) => {
     const msg = message as Partial<ParagraphClickedMessage>;
-    if (!msg || msg.type !== "PARAGRAPH_CLICKED") {
-      console.log("Difarrence message" + msg);
-      return
+    if (!msg) {
+      console.log("[element-translator] Ignoring", JSON.stringify(message)?.substring(0, 100));
+      return;
     };
 
     const sourceText = typeof msg.text === "string" ? msg.text.trim() : "";
-    if (!sourceText) return;
+    console.log(`[element-translator] Received ${msg.type}`, {
+      textType: typeof msg.text,
+      textValue: sourceText.substring(0, 100),
+      length: sourceText.length,
+      senderUrl: sender?.tab?.url,
+      id: msg.id,
+    });
+
+    if (!sourceText) {
+      console.log("[element-translator] Empty text received, skipping");
+      return;
+    }
     const url =
       (typeof msg.url === "string" && msg.url) || sender?.tab?.url || "";
 
@@ -166,15 +180,24 @@ browser.runtime.onMessage.addListener(
       } catch (e: unknown) {
         error = e instanceof Error ? e.message : String(e);
       }
-      await appendHistory({
-        at: Date.now(),
-        url,
-        sourceText,
-        translatedText,
-        endpoint: settings.endpoint,
-        model: settings.model,
-        ...(error ? { error } : {}),
-      });
+
+      if (msg.type == "PARAGRAPH_CLICKED") {
+        await appendHistory({
+          at: Date.now(),
+          url,
+          sourceText,
+          translatedText,
+          endpoint: settings.endpoint,
+          model: settings.model,
+          ...(error ? { error } : {}),
+        });
+      } else if (msg.type == "GET_ALL_TEXT") {
+        return {
+          translatedText,
+          sourceText,
+          id: msg.id,
+        };
+      }
     })();
   },
 );

@@ -134,9 +134,12 @@ export class App extends React.Component<object, State> {
     }
   }
 
-  //private async allTextTranslate() {
-  //  browser.runtime.sendMessage({ type: "GET_ALL_TEXT"})
-  //}
+  private async allTextTranslate() {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    if (tab?.id) {
+      browser.tabs.sendMessage(tab.id, { type: "CLICKED_ALL_TEXT" })
+    }
+  }
   
   private setEndpoint = async (endpoint: string) => {
     await browser.storage.local.set({
@@ -207,7 +210,7 @@ export class App extends React.Component<object, State> {
             <div className="mt-1 text-xs text-red-600">{modelsError}</div>
           ) : null}
         </div>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             className="rounded border px-2 py-1 text-sm"
             onClick={() => void this.loadModels()}
@@ -225,6 +228,12 @@ export class App extends React.Component<object, State> {
             onClick={() => void this.startSelectText()}
           >
           Select text
+          </button>
+          <button
+            className="rounded border px-2 py-1 text-sm"
+            onClick={() => void this.allTextTranslate()}
+          >
+          All text translate 
           </button>
         </div>
         <div className="mt-4">
