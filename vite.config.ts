@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import { resolve } from "path";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync } from "fs";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -9,10 +9,14 @@ type Browser = "firefox" | "chrome";
 const browser: Browser =
   process.env.BROWSER === "chrome" ? "chrome" : "firefox";
 
+const { version } = JSON.parse(
+  readFileSync(resolve(__dirname, "package.json"), "utf-8"),
+) as { version: string };
+
 const baseManifest = {
   manifest_version: 3,
   name: "Element Translator",
-  version: "2.0.1",
+  version,
   description:
     "Translate clicked <p>/<li> text and show in popup with history.",
   action: {
