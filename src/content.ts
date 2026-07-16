@@ -1,6 +1,4 @@
-console.log("load content.js");
-
-interface LLM_response {
+interface LLMResponse {
   translatedText: string,
   sourceText: string,
   id: number,
@@ -35,30 +33,27 @@ function collectMainContentTexts() {
   let sentCount = 0;
   let skipCount = 0;
   let id = 0;
-  const text_list = new Map(); 
+  const textList: Map<number, { element: Element }> = new Map(); 
 
   for (const el of elements) {
     if (el.closest(EXCLUDE_SELECTOR)) continue;
 
     const text = (el.textContent ?? "").trim();
-    if(!text) {
+    if (!text) {
       skipCount++;
       continue;
     };
     
     try {
       const message = { type: "GET_ALL_TEXT", text, id};
-      text_list.set(id, { element: el });
-      console.log(
-        `[element-translator] Sending <${el.tagName}> (${text.length} chars):`,
-        text.substring(0, 80)
-      );
+      textList.set(id, { element: el });
       browser.runtime.sendMessage(message)
         .then((response) => {
-          console.log("[element-translator] return", response)
-          const res = response as Partial<LLM_response>;
-          const unit = text_list.get(res.id);
-          unit.element.textContent = res.translatedText;
+          const res = response as LLMResponse;
+          const unit = textList.get(res.id);
+          if (unit) {
+            unit.element.textContent = res.translatedText;
+          }
          })
         .catch((err) => {
           console.error(`[element-translator] sendMessage failed for <${el.tagName}>:`, err);
@@ -81,10 +76,10 @@ interface translateAllPage {
 
 browser.runtime.onMessage.addListener(async(message: unknown) => {
   const msg = message as Partial<translateAllPage>;
-  if (msg.type == "CLICKED_ALL_TEXT") {
+  if (msg.type === "CLICKED_ALL_TEXT") {
     collectMainContentTexts();
     return true;
-  } else if (msg.type == "SELECT_TRANSLATE") {
+  } else if (msg.type === "SELECT_TRANSLATE") {
     setupSelectTextListener();
     return true;
   }

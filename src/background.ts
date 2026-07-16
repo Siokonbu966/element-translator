@@ -3,7 +3,7 @@ import browser from "webextension-polyfill";
 interface Settings {
   endpoint: string;
   model: string;
-};
+}
 
 interface HistoryItem {
   at: number;
@@ -13,7 +13,7 @@ interface HistoryItem {
   endpoint: string;
   model: string;
   error?: string;
-};
+}
 
 
 type ParagraphClickedMessage = {
@@ -21,8 +21,7 @@ type ParagraphClickedMessage = {
   text: string;
   url?: string;
   id?: number;
-  el?: Element;
-};
+}
 
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 const HISTORY_LIMIT = 50;
@@ -146,7 +145,6 @@ browser.runtime.onMessage.addListener(
   (message: unknown, sender: browser.Runtime.MessageSender) => {
     const msg = message as Partial<ParagraphClickedMessage>;
     if (!msg) {
-      console.log("[element-translator] Ignoring", JSON.stringify(message)?.substring(0, 100));
       return;
     };
 
@@ -181,7 +179,7 @@ browser.runtime.onMessage.addListener(
         error = e instanceof Error ? e.message : String(e);
       }
 
-      if (msg.type == "PARAGRAPH_CLICKED") {
+      if (msg.type === "PARAGRAPH_CLICKED") {
         await appendHistory({
           at: Date.now(),
           url,
@@ -191,7 +189,7 @@ browser.runtime.onMessage.addListener(
           model: settings.model,
           ...(error ? { error } : {}),
         });
-      } else if (msg.type == "GET_ALL_TEXT") {
+      } else if (msg.type === "GET_ALL_TEXT") {
         return {
           translatedText,
           sourceText,
