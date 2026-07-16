@@ -27,11 +27,16 @@ jobs:
             pnpm run build
           "
 
-      - name: Zip extension
-        run: zip -r extension.zip dist/
+      - name: Zip Firefox extension
+        run: zip -r element-translator-firefox.zip dist/firefox/
+
+      - name: Zip Chrome extension
+        run: zip -r element-translator-chrome.zip dist/chrome/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: extension.zip
+          files: |
+            element-translator-firefox.zip
+            element-translator-chrome.zip
           generate_release_notes: true

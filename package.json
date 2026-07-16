@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build:firefox": "export BROWSER=firefox && tsc -b && vite build",
+    "build:chrome": "export BROWSER=chrome && tsc -b && vite build",
+    "build": "pnpm build:firefox && pnpm build:chrome",
     "lint": "eslint .",
     "preview": "vite preview"
   },
