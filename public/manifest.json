@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Element Translator",
-  "version": "0.1.0",
+  "version": "2.0.1",
   "description": "Translate clicked <p>/<li> text and show in popup with history.",
   "browser_specific_settings": {
     "gecko": {

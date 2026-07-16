@@ -1,0 +1,11 @@
+{
+  "summary": {
+    "en-US": "Translate web pages of using local LLM."
+  },
+  "categories": [
+    "other"
+  ],
+  "version": {
+    "license": "MPL-2.0"
+  }
+}
