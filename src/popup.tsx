@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
+import WindowIcon from "ikonate/icons/window.svg?react";
 import "./popup.css";
 
 interface Settings {
@@ -18,8 +19,6 @@ interface HistoryItem {
   error?: string;
 }
 
-const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
-
 interface State {
   history: HistoryItem[];
   settings: Settings;
@@ -28,6 +27,13 @@ interface State {
   modelsError: string | null;
   loadingModels: boolean;
 }
+
+interface WindowItem {
+  type: browser.Windows.CreateType;
+  url: string;
+}
+
+const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 
 export class App extends React.Component<object, State> {
   state: State = {
@@ -157,6 +163,14 @@ export class App extends React.Component<object, State> {
     await browser.storage.local.set({ history: [] });
   };
 
+  private openWindow = () => {
+    const createWindow: WindowItem = {
+      type: "panel",
+      url: "panel.html",
+    };
+    browser.windows.create(createWindow);
+  }
+
   render() {
     const {
       history,
@@ -168,7 +182,10 @@ export class App extends React.Component<object, State> {
     } = this.state;
     return (
       <div className="p-3 w-[360px]">
-        <h1 className="text-lg font-semibold">Element Translator</h1>
+        <div className="flex justify-between">
+          <h1 className="text-lg font-semibold">Element Translator</h1>
+          <WindowIcon className="h-8 icon-white" onClick={ () => void this.openWindow() }/>
+        </div>
         <div className="mt-3">
           <label className="block text-sm font-medium">
             LM Studio endpoint

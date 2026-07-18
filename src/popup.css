@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+.icon-white {
+  fill: transparent;
+  stroke: black;
+}
