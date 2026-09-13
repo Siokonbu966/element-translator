@@ -76,7 +76,7 @@ interface translateAllPage {
 
 browser.runtime.onMessage.addListener(async(message: unknown) => {
   const msg = message as Partial<translateAllPage>;
-  if (msg.type === "CLICKED_ALL_TEXT") {
+  if (msg.type === "ALL_TEXT_TRANSLATE") {
     collectMainContentTexts();
     return true;
   } else if (msg.type === "SELECT_TRANSLATE") {

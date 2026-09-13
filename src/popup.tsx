@@ -35,8 +35,8 @@ interface WindowItem {
 
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 
-export class App extends React.Component<object, State> {
-  state: State = {
+export default function App() {
+  const [state, setState]: State = {
     history: [],
     settings: { endpoint: DEFAULT_ENDPOINT, model: "" },
     endpointError: false,
@@ -45,15 +45,15 @@ export class App extends React.Component<object, State> {
     loadingModels: false,
   };
 
-  private onStorageChanged = (
+  function onStorageChanged (
     changes: Record<string, browser.Storage.StorageChange>,
-  ) => {
+  ) {
     if (changes.history) {
       const next = changes.history.newValue;
-      this.setState({
-        history: Array.isArray(next) ? (next as HistoryItem[]) : [],
-      });
-    }
+      setState(
+        state.history = Array.isArray(next) ? (next as HistoryItem[]) : []
+      );
+   }
     if (changes.settings) {
       const next = changes.settings.newValue as Partial<Settings> | undefined;
       const endpoint =
@@ -61,14 +61,14 @@ export class App extends React.Component<object, State> {
           ? next.endpoint.trim()
           : DEFAULT_ENDPOINT;
       const model = typeof next?.model === "string" ? next.model : "";
-      this.setState(
-        { settings: { endpoint, model } },
-        () => void this.loadModels(),
+      setState(
+        { endpoint, model },
+        () => void loadModels()
       );
     }
   };
 
-  async componentDidMount() {
+  async function componentDidMount() {
     browser.storage.onChanged.addListener(this.onStorageChanged);
     const store = await browser.storage.local.get(["history", "settings"]);
     const history = Array.isArray(store.history)
@@ -80,9 +80,9 @@ export class App extends React.Component<object, State> {
         ? raw.endpoint.trim()
         : DEFAULT_ENDPOINT;
     const model = typeof raw.model === "string" ? raw.model : "";
-    this.setState(
+    setState(
       { history, settings: { endpoint, model } },
-      () => void this.loadModels(),
+      () => void loadModels()
     );
   }
 
@@ -90,16 +90,19 @@ export class App extends React.Component<object, State> {
     browser.storage.onChanged.removeListener(this.onStorageChanged);
   }
 
+  private clearHistory = async () => {
+    await browser.storage.local.set({ history: [] });
+  };
+
   private isValidHttpUrl(endpoint: string): boolean {
     if (!URL.canParse(endpoint)) {
       return false;
     }
-
     const url = new URL(endpoint);
     return url.protocol === "http:" || url.protocol === "https:";
   }
 
-  private async loadModels() {
+  async function loadModels() {
     const endpoint = this.state.settings.endpoint.trim() || DEFAULT_ENDPOINT;
     if (!this.isValidHttpUrl(endpoint)) {
       this.setState({ endpointError: true });
@@ -118,7 +121,6 @@ export class App extends React.Component<object, State> {
         .map((m) => (typeof m.id === "string" ? m.id : ""))
         .filter(Boolean);
       this.setState({ models });
-      // モデル未設定なら最初のモデルを自動セット（background側でも同様にフォールバックするので二重でもOK）
       if (!this.state.settings.model && models[0]) {
         await browser.storage.local.set({
           settings: { ...this.state.settings, endpoint, model: models[0] },
@@ -133,20 +135,7 @@ export class App extends React.Component<object, State> {
       this.setState({ loadingModels: false });
     }
   }
-  private async startSelectText() {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
-    if (tab?.id) {
-      browser.tabs.sendMessage(tab.id, { type: "SELECT_TRANSLATE" })
-    }
-  }
 
-  private async allTextTranslate() {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
-    if (tab?.id) {
-      browser.tabs.sendMessage(tab.id, { type: "CLICKED_ALL_TEXT" })
-    }
-  }
-  
   private setEndpoint = async (endpoint: string) => {
     await browser.storage.local.set({
       settings: { ...this.state.settings, endpoint },
@@ -159,10 +148,20 @@ export class App extends React.Component<object, State> {
     });
   };
 
-  private clearHistory = async () => {
-    await browser.storage.local.set({ history: [] });
-  };
+  private async startSelectText() {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    if (tab?.id) {
+      browser.tabs.sendMessage(tab.id, { type: "SELECT_TRANSLATE" })
+    }
+  }
 
+  private async allTextTranslate() {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+    if (tab?.id) {
+      browser.tabs.sendMessage(tab.id, { type: "ALL_TEXT_TRANSLATE" })
+    }
+  }
+ 
   private openWindow = () => {
     const createWindow: WindowItem = {
       type: "panel",
