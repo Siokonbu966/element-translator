@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
 import WindowIcon from "ikonate/icons/window.svg?react";
@@ -36,6 +36,11 @@ interface WindowItem {
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 
 export default function App() {
+  const [history, setHistory] = useState<History[]>([]);
+  const [settings, setSettings] = useState<Settings>({
+    endpoint: DEFAULT_ENDPOINT, model: ""
+  });
+  const [endpointError, setEndpointError] = useState<string | null>(null)
   const [state, setState]: State = {
     history: [],
     settings: { endpoint: DEFAULT_ENDPOINT, model: "" },
@@ -45,15 +50,13 @@ export default function App() {
     loadingModels: false,
   };
 
-  function onStorageChanged (
-    changes: Record<string, browser.Storage.StorageChange>,
-  ) {
+  const onStorageChanged () => {
     if (changes.history) {
       const next = changes.history.newValue;
       setState(
         state.history = Array.isArray(next) ? (next as HistoryItem[]) : []
       );
-   }
+    }
     if (changes.settings) {
       const next = changes.settings.newValue as Partial<Settings> | undefined;
       const endpoint =
@@ -90,7 +93,7 @@ export default function App() {
     browser.storage.onChanged.removeListener(this.onStorageChanged);
   }
 
-  private clearHistory = async () => {
+  const clearHistory = async () => {
     await browser.storage.local.set({ history: [] });
   };
 
