@@ -108,24 +108,24 @@ export default function App() {
       setModelsError( e instanceof Error ? e.message : String(e) );
       setModels([]);
     } finally {
-      this.setState({ loadingModels: false });
+      setLoadingModels(false);
     }
   }
 
-  private setEndpoint = async (endpoint: string) => {
+  async function setEndpoint(endpoint: string) {
     await browser.storage.local.set({
-      settings: { ...this.state.settings, endpoint },
+      settings: { ...settings, endpoint },
     });
   };
 
-  private setModel = async (model: string) => {
+  async function setModel(model: string) {
     await browser.storage.local.set({
-      settings: { ...this.state.settings, model },
+      settings: { ...settings, model },
     });
   };
 
-  private async startSelectText() {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+  async function startSelectText() {
+    const tab = await browser.tabs.query({  u active: true, currentWindow: true })
     if (tab?.id) {
       browser.tabs.sendMessage(tab.id, { type: "SELECT_TRANSLATE" })
     }
