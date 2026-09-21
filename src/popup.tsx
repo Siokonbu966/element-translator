@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { createRoot } from "react-dom/client";
 import browser from "webextension-polyfill";
 import WindowIcon from "ikonate/icons/window.svg?react";
@@ -36,43 +36,22 @@ interface WindowItem {
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 
 export default function App() {
-  const [history, setHistory] = useState<History[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [settings, setSettings] = useState<Settings>({
     endpoint: DEFAULT_ENDPOINT, model: ""
   });
   const [endpointError, setEndpointError] = useState<string | null>(null)
-  const [state, setState]: State = {
-    history: [],
-    settings: { endpoint: DEFAULT_ENDPOINT, model: "" },
-    endpointError: false,
-    models: [],
-    modelsError: null,
-    loadingModels: false,
-  };
+  const [models, setModels] = useState<string[]>([]);
+  const [modelsError, setModelsError] = useState<string | null>(null)
+  const [loadingModels, setLoadingModels] = useState<boolean>(false)
 
-  const onStorageChanged () => {
-    if (changes.history) {
-      const next = changes.history.newValue;
-      setState(
-        state.history = Array.isArray(next) ? (next as HistoryItem[]) : []
-      );
-    }
-    if (changes.settings) {
-      const next = changes.settings.newValue as Partial<Settings> | undefined;
-      const endpoint =
-        typeof next?.endpoint === "string" && next.endpoint.trim()
-          ? next.endpoint.trim()
-          : DEFAULT_ENDPOINT;
-      const model = typeof next?.model === "string" ? next.model : "";
-      setState(
-        { endpoint, model },
-        () => void loadModels()
-      );
-    }
-  };
+  function onStorageChanged(changes: Record<string, browser.Storage.StorageChange>) {
+    const next = changes.history.newValue;
+    setHistory( Array.isArray(next) ? (next as HistoryItem[]) : [] )
+  }
 
   async function componentDidMount() {
-    browser.storage.onChanged.addListener(this.onStorageChanged);
+    browser.storage.onChanged.addListener(onStorageChanged);
     const store = await browser.storage.local.get(["history", "settings"]);
     const history = Array.isArray(store.history)
       ? (store.history as HistoryItem[])
@@ -83,21 +62,19 @@ export default function App() {
         ? raw.endpoint.trim()
         : DEFAULT_ENDPOINT;
     const model = typeof raw.model === "string" ? raw.model : "";
-    setState(
-      { history, settings: { endpoint, model } },
-      () => void loadModels()
-    );
+    setHistory(history)
+    setSettings({endpoint, model})
   }
 
-  componentWillUnmount() {
-    browser.storage.onChanged.removeListener(this.onStorageChanged);
+  function componentWillUnmount() {
+    browser.storage.onChanged.removeListener(onStorageChanged);
   }
 
   const clearHistory = async () => {
     await browser.storage.local.set({ history: [] });
   };
 
-  private isValidHttpUrl(endpoint: string): boolean {
+  function isValidHttpUrl(endpoint: string): boolean {
     if (!URL.canParse(endpoint)) {
       return false;
     }
@@ -106,16 +83,14 @@ export default function App() {
   }
 
   async function loadModels() {
-    const endpoint = this.state.settings.endpoint.trim() || DEFAULT_ENDPOINT;
-    if (!this.isValidHttpUrl(endpoint)) {
-      this.setState({ endpointError: true });
+    const endpoint = settings.endpoint.trim() || DEFAULT_ENDPOINT;
+    if (!isValidHttpUrl(endpoint)) {
+      setLoadingModels(true);
       return;
     }
-    this.setState({
-      loadingModels: true,
-      modelsError: null,
-      endpointError: false,
-    });
+    setLoadingModels(true);
+    setModelsError(null);
+    setEndpointError(null);
     try {
       const res = await fetch(`${endpoint.replace(/\/+$/, "")}/v1/models`);
       if (!res.ok) throw new Error(`GET /v1/models failed: ${res.status}`);
@@ -123,17 +98,15 @@ export default function App() {
       const models = (json.data ?? [])
         .map((m) => (typeof m.id === "string" ? m.id : ""))
         .filter(Boolean);
-      this.setState({ models });
-      if (!this.state.settings.model && models[0]) {
+      setModels(models);
+      if (!settings.model && models[0]) {
         await browser.storage.local.set({
-          settings: { ...this.state.settings, endpoint, model: models[0] },
+          settings: { ...settings, endpoint, model: models[0] },
         });
       }
     } catch (e: unknown) {
-      this.setState({
-        modelsError: e instanceof Error ? e.message : String(e),
-        models: [],
-      });
+      setModelsError( e instanceof Error ? e.message : String(e) );
+      setModels([]);
     } finally {
       this.setState({ loadingModels: false });
     }
