@@ -51,9 +51,7 @@ export class App extends React.Component<object, State> {
     if (changes.settings) {
       const next = changes.settings.newValue as Partial<Settings> | undefined;
       const endpoint =
-        typeof next?.endpoint === "string" && next.endpoint.trim()
-          ? next.endpoint.trim()
-          : DEFAULT_ENDPOINT;
+        typeof next?.endpoint === "string" ? next.endpoint : DEFAULT_ENDPOINT;
       const model = typeof next?.model === "string" ? next.model : "";
       this.setState(
         { settings: { endpoint, model } },
@@ -141,16 +139,16 @@ export class App extends React.Component<object, State> {
     }
   }
   
-  private setEndpoint = async (endpoint: string) => {
-    await browser.storage.local.set({
-      settings: { ...this.state.settings, endpoint },
-    });
+  private setEndpoint = (endpoint: string) => {
+    const settings = { ...this.state.settings, endpoint };
+    this.setState({ settings });
+    void browser.storage.local.set({ settings });
   };
 
-  private setModel = async (model: string) => {
-    await browser.storage.local.set({
-      settings: { ...this.state.settings, model },
-    });
+  private setModel = (model: string) => {
+    const settings = { ...this.state.settings, model };
+    this.setState({ settings });
+    void browser.storage.local.set({ settings });
   };
 
   private clearHistory = async () => {
