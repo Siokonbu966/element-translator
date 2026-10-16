@@ -20,13 +20,20 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             nodejs_24
-            pnpm
+            pnpm_10
           ];
           
           shellHook = ''
+            export NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false
+
             echo "completed!"
             echo "Node.js version: $(node -v)"
             echo "pnpm version: $(pnpm -v)"
+
+            if [ ! -d node_modules ] || [ pnpm-lock.yaml -nt node_modules/.modules.yaml ]; then
+              echo "Installing dependencies with pnpm..."
+              pnpm install
+            fi
           '';
         };
       };
