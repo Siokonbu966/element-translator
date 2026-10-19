@@ -11,7 +11,12 @@ const base = {
     default_popup: "popup.html",
   },
   permissions: ["storage", "activeTab"],
-  host_permissions: ["http://127.0.0.1:1234/*", "http://localhost:1234/*"],
+  host_permissions: [
+    "http://127.0.0.1:1234/*",
+    "http://localhost:1234/*",
+    "http://127.0.0.1:11434/*",
+    "http://localhost:11434/*",
+  ],
   content_scripts: [
     {
       matches: ["<all_urls>"],

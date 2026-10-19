@@ -45,11 +45,15 @@ async function saveSettings(settings: Settings) {
   await browser.storage.local.set({ settings });
 }
 
+function normalizeBaseUrl(endpoint: string): string {
+  return endpoint.trim().replace(/\/+$/, "").replace(/\/v1$/, "");
+}
+
 async function listModels(
   endpoint: string,
   signal?: AbortSignal,
 ): Promise<string[]> {
-  const res = await fetch(`${endpoint.replace(/\/+$/, "")}/v1/models`, {
+  const res = await fetch(`${normalizeBaseUrl(endpoint)}/v1/models`, {
     signal,
   });
   if (!res.ok) throw new Error(`LM Studio /v1/models failed: ${res.status}`);
@@ -87,7 +91,7 @@ async function translateToJapanese(
   const timeout = setTimeout(() => controller.abort(), TRANSLATE_TIMEOUT_MS);
   try {
     const res = await fetch(
-      `${endpoint.replace(/\/+$/, "")}/v1/chat/completions`,
+      `${normalizeBaseUrl(endpoint)}/v1/chat/completions`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },

@@ -26,6 +26,12 @@ interface AppProps {
 
 const DEFAULT_ENDPOINT = "http://127.0.0.1:1234";
 
+function normalizeBaseUrl(endpoint: string): string {
+  // ユーザーが OpenAI 互換の base URL（例: http://localhost:11434/v1）を
+  // 入力しても /v1 が二重にならないようにする
+  return endpoint.trim().replace(/\/+$/, "").replace(/\/v1$/, "");
+}
+
 function isValidHttpUrl(endpoint: string): boolean {
   if (!URL.canParse(endpoint)) {
     return false;
@@ -104,16 +110,21 @@ export default function App({ variant = "popup" }: AppProps) {
     setModelsError(null);
     setEndpointError(null);
     try {
-      const res = await fetch(`${endpoint.replace(/\/+$/, "")}/v1/models`);
+      const res = await fetch(`${normalizeBaseUrl(endpoint)}/v1/models`);
       if (!res.ok) throw new Error(`GET /v1/models failed: ${res.status}`);
       const json = (await res.json()) as { data?: Array<{ id?: string }> };
       const nextModels = (json.data ?? [])
         .map((m) => (typeof m.id === "string" ? m.id : ""))
         .filter(Boolean);
       setModels(nextModels);
-      if (!settings.model && nextModels[0]) {
+      // 以前のモデル（LM Studio のものなど）が一覧にない場合、
+      // <select> の value がどの option とも一致せず空表示になるので選び直す
+      const picked = nextModels.includes(settings.model)
+        ? settings.model
+        : (nextModels[0] ?? "");
+      if (picked !== settings.model) {
         await browser.storage.local.set({
-          settings: { ...settings, endpoint, model: nextModels[0] },
+          settings: { ...settings, endpoint, model: picked },
         });
       }
     } catch (e: unknown) {
