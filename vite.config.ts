@@ -3,6 +3,7 @@ import { resolve } from "path";
 import { writeFileSync, readFileSync } from "fs";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import svgr from "vite-plugin-svgr";
 
 type Browser = "firefox" | "chrome";
 
@@ -24,7 +25,12 @@ const baseManifest = {
     default_popup: "popup.html",
   },
   permissions: ["storage", "activeTab"],
-  host_permissions: ["http://127.0.0.1:1234/*", "http://localhost:1234/*"],
+  host_permissions: [
+    "http://127.0.0.1:1234/*",
+    "http://localhost:1234/*",
+    "http://127.0.0.1:11434/*",
+    "http://localhost:11434/*",
+  ],
   content_scripts: [
     {
       matches: ["<all_urls>"],
@@ -72,13 +78,14 @@ function manifestPlugin(browser: Browser): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), manifestPlugin(browser)],
+  plugins: [react(), tailwindcss(), svgr(), manifestPlugin(browser)],
   build: {
     outDir: `dist/${browser}`,
     emptyOutDir: true,
     rollupOptions: {
       input: {
         popup: resolve(__dirname, "popup.html"),
+        panel: resolve(__dirname, "panel.html"),
         background: resolve(__dirname, "src/background.ts"),
         content: resolve(__dirname, "src/content.ts"),
       },
