@@ -4,7 +4,79 @@ interface LLMResponse {
   id: number,
 }
 
+const SELECT_STYLE_ID = "element-translator-select-style";
+const SELECTING_CLASS = "element-translator-selecting";
+const HOVER_CLASS = "element-translator-select-hover";
+const FLASH_CLASS = "element-translator-select-flash";
+
+function injectSelectStyle() {
+  if (document.getElementById(SELECT_STYLE_ID)) return;
+
+  const style = document.createElement("style");
+  style.id = SELECT_STYLE_ID;
+  style.textContent = `
+html.${SELECTING_CLASS}, html.${SELECTING_CLASS} * {
+  cursor: crosshair !important;
+}
+.${HOVER_CLASS} {
+  outline: 2px solid #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+@keyframes element-translator-flash {
+  0% {
+    outline-color: rgba(59, 130, 246, 1);
+    background-color: rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    outline-color: rgba(59, 130, 246, 0);
+    background-color: rgba(59, 130, 246, 0);
+  }
+}
+.${FLASH_CLASS} {
+  outline: 2px solid #3b82f6 !important;
+  animation: element-translator-flash 600ms ease-out !important;
+}
+`;
+  document.head.appendChild(style);
+}
+
+let selecting = false;
+
 function setupSelectTextListener() {
+  if (selecting) return;
+  selecting = true;
+
+  injectSelectStyle();
+  document.documentElement.classList.add(SELECTING_CLASS);
+
+  let hovered: Element | null = null;
+
+  function updateHover(el: Element | null) {
+    if (el === hovered) return;
+    hovered?.classList.remove(HOVER_CLASS);
+    hovered = el;
+    hovered?.classList.add(HOVER_CLASS);
+  }
+
+  function overHandler(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+    updateHover(target?.closest("p, li") ?? null);
+  }
+
+  function outHandler(event: MouseEvent) {
+    const related = event.relatedTarget as HTMLElement | null;
+    updateHover(related?.closest("p, li") ?? null);
+  }
+
+  function cleanup() {
+    document.removeEventListener("click", handler, true);
+    document.removeEventListener("mouseover", overHandler, true);
+    document.removeEventListener("mouseout", outHandler, true);
+    hovered?.classList.remove(HOVER_CLASS);
+    document.documentElement.classList.remove(SELECTING_CLASS);
+    selecting = false;
+  }
+
   function handler(event: MouseEvent) {
     const target = event.target as HTMLElement | null;
     const el = target?.closest("p, li");
@@ -13,10 +85,22 @@ function setupSelectTextListener() {
     const text = el.textContent?.trim() ?? "";
     if (!text) return;
 
-    document.removeEventListener("click", handler, true);
+    cleanup();
+
+    el.classList.add(FLASH_CLASS);
+    const removeFlash = () => {
+      el.classList.remove(FLASH_CLASS);
+      document.getElementById(SELECT_STYLE_ID)?.remove();
+    };
+    el.addEventListener("animationend", removeFlash, { once: true });
+    setTimeout(removeFlash, 700);
+
     browser.runtime.sendMessage({ type: "PARAGRAPH_CLICKED", text });
   }
+
   document.addEventListener("click", handler, true);
+  document.addEventListener("mouseover", overHandler, true);
+  document.addEventListener("mouseout", outHandler, true);
 }
 
 function getMainContainer(): Element{
